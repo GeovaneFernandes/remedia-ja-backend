@@ -1,0 +1,41 @@
+{
+  "name": "remedia-ja-backend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts",
+    "test": "jest",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "zod": "^3.23.8",
+    "@prisma/client": "^5.18.0",
+    "argon2": "^0.31.2",
+    "jsonwebtoken": "^9.0.2",
+    "resend": "^3.5.0",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "tsx": "^4.16.5",
+    "prisma": "^5.18.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.15",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/cors": "^2.8.17",
+    "@types/node-cron": "^3.0.11",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.4",
+    "@types/jest": "^29.5.12",
+    "supertest": "^7.0.0",
+    "@types/supertest": "^6.0.2",
+    "eslint": "^8.57.0"
+  }
+}

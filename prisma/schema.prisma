@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CAREGIVER
+  ADMIN
+}
+
+enum DoseStatus {
+  PENDING
+  CONFIRMED
+  MISSED
+}
+
+model User {
+  id              String    @id @default(cuid())
+  role            Role      @default(CAREGIVER)
+  name            String
+  email           String    @unique
+  passwordHash    String?
+  googleId        String?   @unique
+  appleId         String?   @unique
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  elderlyProfiles ElderlyProfile[]
+}
+
+// Perfil do idoso, cadastrado e gerenciado pelo cuidador (User com role CAREGIVER).
+model ElderlyProfile {
+  id             String   @id @default(cuid())
+  caregiver      User     @relation(fields: [caregiverId], references: [id])
+  caregiverId    String
+  name           String
+  // Token de push do dispositivo onde o app do idoso está instalado.
+  expoPushToken  String?
+  createdAt      DateTime @default(now())
+
+  medications Medication[]
+}
+
+model Medication {
+  id           String   @id @default(cuid())
+  elderly      ElderlyProfile @relation(fields: [elderlyId], references: [id])
+  elderlyId    String
+  name         String
+  dosage       String
+  // Horários no formato "HH:mm", ex: ["08:00", "20:00"]
+  timesOfDay   String[]
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  doseLogs DoseLog[]
+}
+
+// Uma ocorrência de dose agendada. Criado pelo reminder.service para cada
+// horário de cada medicamento, e acompanhado até ser confirmado ou perdido.
+model DoseLog {
+  id             String     @id @default(cuid())
+  medication     Medication @relation(fields: [medicationId], references: [id])
+  medicationId   String
+  scheduledFor   DateTime
+  status         DoseStatus @default(PENDING)
+  // Quantos lembretes já foram disparados para esta dose (0, 1, 2...).
+  attempts       Int        @default(0)
+  lastReminderAt DateTime?
+  escalatedAt    DateTime?
+  confirmedAt    DateTime?
+  createdAt      DateTime   @default(now())
+
+  @@index([status, scheduledFor])
+}

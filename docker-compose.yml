@@ -1,0 +1,54 @@
+# Ambiente de desenvolvimento local. Rodar com: docker compose up
+# Pressupõe remedia-ja-admin clonado como pasta irmã (../remedia-ja-admin).
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-app}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-app}
+      POSTGRES_DB: ${DB_NAME:-app}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-app}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+
+  admin:
+    build:
+      context: ../remedia-ja-admin
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: ../remedia-ja-admin/.env
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+  # Captura local de e-mails transacionais (verificação, recuperação de senha,
+  # alerta de dose perdida) — nunca envia para caixa real em dev.
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  db_data:
